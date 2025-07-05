@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Cartagena</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <canvas id="juego" width="800" height="400"></canvas>
+  <button id="volver" onclick="window.location.href='../mapa.html'">Volver al mapa</button>
+  <div class="controles">
+    <button id="izq">⬅️</button>
+    <button id="der">➡️</button>
+    <button id="saltar">🔼</button>
+    <button id="correr">🏃</button>
+    <button id="bailar">💃</button>
+  </div>
+  <script>
+    const canvas = document.getElementById("juego");
+    const ctx = canvas.getContext("2d");
+    let jugador = { x: 50, y: 300, vy: 0, enSuelo: true };
+    let npc = [{ x: 200 }, { x: 600 }];
+    let autos = [{ x: 0 }, { x: 400 }];
+    let direccion = 0, corriendo = false;
+    let clima = "brisa";
+
+    const color = localStorage.getItem("jugadorColor") || "green";
+    const nombre = localStorage.getItem("jugadorNombre") || "Explorador";
+
+    function dibujar() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#aaf'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#ddf'; ctx.fillRect(0, 0, 800, 50);
+      ctx.fillStyle = color; ctx.fillRect(jugador.x, jugador.y, 30, 50);
+      ctx.fillStyle = "black";
+      ctx.font = "16px sans-serif";
+      ctx.fillText(nombre, jugador.x - 10, jugador.y - 10);
+      npc.forEach(n => { ctx.fillStyle = 'brown'; ctx.fillRect(n.x, 300, 20, 40); });
+      autos.forEach(a => { ctx.fillStyle = 'blue'; ctx.fillRect(a.x, 340, 50, 20); });
+    }
+
+    function actualizar() {
+      if (!jugador.enSuelo) { jugador.vy += 1; jugador.y += jugador.vy; }
+      if (jugador.y >= 300) { jugador.y = 300; jugador.enSuelo = true; jugador.vy = 0; }
+      jugador.x += direccion * (corriendo ? 10 : 5);
+      npc.forEach(n => { n.x += Math.random() > 0.5 ? 1 : -1; });
+      autos.forEach(a => { a.x += 3; if (a.x > 800) a.x = -100; });
+    }
+
+    document.getElementById("izq").addEventListener("touchstart", () => direccion = -1);
+    document.getElementById("der").addEventListener("touchstart", () => direccion = 1);
+    document.getElementById("izq").addEventListener("touchend", () => direccion = 0);
+    document.getElementById("der").addEventListener("touchend", () => direccion = 0);
+    document.getElementById("saltar").addEventListener("touchstart", () => { if (jugador.enSuelo) { jugador.vy = -15; jugador.enSuelo = false; } });
+    document.getElementById("correr").addEventListener("touchstart", () => corriendo = true);
+    document.getElementById("correr").addEventListener("touchend", () => corriendo = false);
+    document.getElementById("bailar").addEventListener("touchstart", () => alert(`💃 ${nombre} está bailando!`));
+
+    function loop() { actualizar(); dibujar(); requestAnimationFrame(loop); }
+    loop();
+  </script>
+</body>
+</html>
